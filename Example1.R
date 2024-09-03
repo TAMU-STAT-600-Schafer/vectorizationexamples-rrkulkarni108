@@ -1,8 +1,15 @@
 # Squaring elements of a given vector
 
 square_for <- function(x){
+  #is.numeric(x)
   # [ToDo] Use the for loop
-
+  n <-  length(x)
+  y <- vector(length = n)
+  for (i in 1:n){ #seq_along(x) since if you do 1:n, and n = 0- error
+    y[i] <-  x[i]^2
+  }
+  
+  return (y)
 }
 
 square_sapply <- function(x){
