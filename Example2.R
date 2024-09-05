@@ -46,25 +46,32 @@ classify_vec <- function(beta, xtrain, ytrain, xtest, ytest){
   # [ToDo] Try to create vectorized version of classify_for
   
   # Calculate sample means based on training data
-  xbar1 <- colMeans(xtrain[ytrain = 1, ])#drop = FALSE
-  xbar1 <- colMeans(xtrain[ytrain = 2, ])#drop = FALSE
+  xbar1 <- colMeans(xtrain[ytrain == 1, ]) # drop= FALSE
+  xbar2 <- colMeans(xtrain[ytrain == 2, ])
   
   # Calculate the inner product of the means with beta
-  m1b <-  as.numeric(crossprod(xbar1, beta))#mean1 *b
-  m2b <-  as.numeric(crossprod(xbar2, beta))
+  m1b <- as.numeric(crossprod(xbar1, beta))
+  m2b <- as.numeric(crossprod(xbar2, beta))
   
-  # Calculate the product of xtest with beta
-  xtestb <- xtest %*% beta
+  # Calculate produce of xtest with beta
+  xtestb <- xtest%*%beta
   
   # Calculate class assignments for xtest using matrix and vector algebra
   h1 <- (xtestb - m1b)^2
-  h2 <- (xtestb -m2b)^2
+  h2 <- (xtestb - m2b)^2
+  
+  ypred <- as.numeric((h2 < h1) + 1) # ifelse() #by default h2<h1 will give either 1 or 0, so we add 1 to get class labels 1 and 2
+
+  
   # Calculate % error using ytest
+  error <- 100*mean(ypred != ytest)
   
   # Return predictions and error
   return(list(ypred = ypred, error = error))
 }
 
+
+  #error <- 100*mean(ypred != ytest)
 # Example 
 ##############################################
 
@@ -74,7 +81,7 @@ mu1 <- rep(0, p) # mean vector for class 1
 mu2 <- rep(1, p) # mean vector for class 2
 # equicorrelation covariance matrix with correlation rho
 rho <- 0.4
-Sigma <- matrix(rho, p, p) + diag(1-rho, p)
+Sigma <- matrix(rho, p, p) + diag(1-rho, p) # we assume in lda that each class has same covariance
 
 # Create training data
 n1 <- 100 # number of samples in class 1
@@ -106,7 +113,15 @@ out1 = classify_for(beta, xtrain, ytrain, xtest, ytest)
 out2 = classify_vec(beta, xtrain, ytrain, xtest, ytest)
 
 # [ToDo] Verify the assignments agree with each other
+testthat:: expect_equal(out1, out2)
+summary(out1$ypred-out2$ypred)
 
 # [ToDo] Use microbenchmark package to compare the timing
+library(microbenchmark)
+
+microbenchmark(
+  classify_for(beta, xtrain, ytrain, xtest, ytest)
+  classify_vec(beta, xtrain, ytrain, xtest, ytest)
+)
 
 library(microbenchmark)
